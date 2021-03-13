@@ -1,30 +1,31 @@
 import sys
 from PySide2 import QtCore, QtWidgets, QtGui, QtWebEngineWidgets
 import socket
+from flask import Flask
 
 
 class ApplicationThread(QtCore.QThread):
-    def __init__(self, application, port=5000):
+    def __init__(self, application: Flask, port: int = 5000):
         super(ApplicationThread, self).__init__()
         self.application = application
         self.port = port
 
     def __del__(self):
-        self.wait()
+        self.wait(1)
 
-    def run(self):
+    def run(self) -> None:
         self.application.run(port=self.port, threaded=True)
 
 
 class WebPage(QtWebEngineWidgets.QWebEnginePage):
-    def __init__(self, root_url):
+    def __init__(self, root_url: str):
         super(WebPage, self).__init__()
         self.root_url = root_url
 
-    def home(self):
+    def home(self) -> None:
         self.load(QtCore.QUrl(self.root_url))
 
-    def acceptNavigationRequest(self, url, kind, is_main_frame):
+    def acceptNavigationRequest(self, url, kind, is_main_frame) -> bool:
         """Open external links in browser and internal links in the webview"""
         ready_url = url.toEncoded().data().decode()
         is_clicked = kind == self.NavigationTypeLinkClicked
@@ -34,8 +35,8 @@ class WebPage(QtWebEngineWidgets.QWebEnginePage):
         return super(WebPage, self).acceptNavigationRequest(url, kind, is_main_frame)
 
 
-def init_gui(application, port=0, width=800, height=600,
-             window_title="PySideFlask", icon="appicon.png", argv=None):
+def init_gui(application: Flask, port=0, width=800, height=600,
+             window_title="PySideFlask", icon="appicon.png", argv=None) -> int:
     if argv is None:
         argv = sys.argv
 
