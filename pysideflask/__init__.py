@@ -20,7 +20,7 @@ class WebPage(QtWebEngineWidgets.QWebEnginePage):
     def __init__(self, root_url):
         super(WebPage, self).__init__()
         self.root_url = root_url
-        self.view.page().profile().downloadRequested.connect(
+        self.profile().downloadRequested.connect(
             self.on_downloadRequested
         )
 
