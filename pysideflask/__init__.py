@@ -20,6 +20,9 @@ class WebPage(QtWebEngineWidgets.QWebEnginePage):
     def __init__(self, root_url):
         super(WebPage, self).__init__()
         self.root_url = root_url
+        self.view.page().profile().downloadRequested.connect(
+            self.on_downloadRequested
+        )
 
     def home(self):
         self.load(QtCore.QUrl(self.root_url))
@@ -33,6 +36,18 @@ class WebPage(QtWebEngineWidgets.QWebEnginePage):
             return False
         return super(WebPage, self).acceptNavigationRequest(url, kind, is_main_frame)
 
+    @QtCore.Slot("QWebEngineDownloadItem*")
+    def on_downloadRequested(self, download):
+        download.accept()
+
+        # old_path = download.url().path()  # download.path()
+        # suffix = QtCore.QFileInfo(old_path).suffix()
+        # path, _ = QtWidgets.QFileDialog.getSaveFileName(
+        #     self, "Save File", old_path, "*." + suffix
+        # )
+        # if path:
+        #     download.setPath(path)
+        #     download.accept()
 
 def init_gui(application, port=0, width=800, height=600,
              window_title="PySideFlask", icon="appicon.png", argv=None):
