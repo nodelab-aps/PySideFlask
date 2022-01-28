@@ -4,6 +4,7 @@ import socket
 
 
 class ApplicationThread(QtCore.QThread):
+    download_requested = QtCore.Signal(QtWebEngineWidgets.QWebEngineDownloadItem)
     def __init__(self, application, port=5000):
         super(ApplicationThread, self).__init__()
         self.application = application
@@ -13,16 +14,16 @@ class ApplicationThread(QtCore.QThread):
         self.wait()
 
     def run(self):
-        self.application.run(port=self.port, threaded=True)
-
+        self.application.run(
+            port=self.port, 
+            threaded=True
+            )
 
 class WebPage(QtWebEngineWidgets.QWebEnginePage):
+    download_requested = QtCore.Signal(QtWebEngineWidgets.QWebEngineDownloadItem)
     def __init__(self, root_url):
         super(WebPage, self).__init__()
         self.root_url = root_url
-        self.profile().downloadRequested.connect(
-            self.on_downloadRequested
-        )
 
     def home(self):
         self.load(QtCore.QUrl(self.root_url))
@@ -36,21 +37,16 @@ class WebPage(QtWebEngineWidgets.QWebEnginePage):
             return False
         return super(WebPage, self).acceptNavigationRequest(url, kind, is_main_frame)
 
-    @QtCore.Slot("QWebEngineDownloadItem*")
-    def on_downloadRequested(self, download):
-        download.accept()
 
-        # old_path = download.url().path()  # download.path()
-        # suffix = QtCore.QFileInfo(old_path).suffix()
-        # path, _ = QtWidgets.QFileDialog.getSaveFileName(
-        #     self, "Save File", old_path, "*." + suffix
-        # )
-        # if path:
-        #     download.setPath(path)
-        #     download.accept()
-
-def init_gui(application, port=0, width=800, height=600,
-             window_title="PySideFlask", icon="appicon.png", argv=None):
+def init_gui(
+    application, 
+    port=0, 
+    width=None, 
+    height=None,
+    window_title="PySideFlask", 
+    icon="appicon.png", 
+    argv=None
+    ):
     if argv is None:
         argv = sys.argv
 
@@ -68,6 +64,14 @@ def init_gui(application, port=0, width=800, height=600,
 
     # Main Window Level
     window = QtWidgets.QMainWindow()
+    if not width or not height:
+        availableGeometry = application.desktop().availableGeometry(window)
+        if not width:
+            width = availableGeometry.width() 
+        if not height:
+            height = availableGeometry.height()
+    window.resize(width,height)
+
     window.resize(width, height)
     window.setWindowTitle(window_title)
     window.setWindowIcon(QtGui.QIcon(icon))
@@ -75,6 +79,34 @@ def init_gui(application, port=0, width=800, height=600,
     # WebView Level
     webView = QtWebEngineWidgets.QWebEngineView(window)
     window.setCentralWidget(webView)
+    
+
+
+    
+    # < DOWNLOAD >
+    # https://doc.qt.io/archives/qtforpython-5.12/_modules/browsertabwidget.html#BrowserTabWidget
+    # webView.page()
+    # webView.download_requested = QtCore.Signal(QtWebEngineWidgets.QWebEngineDownloadItem)
+    #     # self.profile().connect(self._download_requested)
+    def download_function(download):
+        download.accept()
+    webView.page().profile().downloadRequested.connect(download_function)
+
+    # # Download item
+    # download = QtWebEngineWidgets.QWebEngineDownloadItem()
+    # if download.DownloadRequested:
+    #     
+
+    # @QtCore.Slot("QWebEngineDownloadItem*")    
+    # def on_downloadRequested(self, download):
+    #     download.accept()
+
+    def downloadfunction(download):
+        download.accept()
+
+
+    # < /DOWNLOAD >
+
 
     # WebPage Level
     page = WebPage('http://localhost:{}'.format(port))
