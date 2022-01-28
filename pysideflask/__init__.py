@@ -65,7 +65,7 @@ def init_gui(
     # Main Window Level
     window = QtWidgets.QMainWindow()
     if not width or not height:
-        availableGeometry = application.desktop().availableGeometry(window)
+        availableGeometry = qtapp.desktop().availableGeometry(window)
         if not width:
             width = availableGeometry.width() 
         if not height:
@@ -80,8 +80,6 @@ def init_gui(
     webView = QtWebEngineWidgets.QWebEngineView(window)
     window.setCentralWidget(webView)
     
-
-
     
     # < DOWNLOAD >
     # https://doc.qt.io/archives/qtforpython-5.12/_modules/browsertabwidget.html#BrowserTabWidget
@@ -100,10 +98,6 @@ def init_gui(
     # @QtCore.Slot("QWebEngineDownloadItem*")    
     # def on_downloadRequested(self, download):
     #     download.accept()
-
-    def downloadfunction(download):
-        download.accept()
-
 
     # < /DOWNLOAD >
 
